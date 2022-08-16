@@ -74,6 +74,21 @@ namespace seal
         void decrypt(const Ciphertext &encrypted, Plaintext &destination);
 
         /*
+        Decrypts a Ciphertext and stores the result in the destination parameter. Extracts the noise polynomial and places it in
+        noise.
+
+        @param[in] encrypted The ciphertext to decrypt
+        @param[out] destination The plaintext to overwrite with the decrypted
+        ciphertext
+        @param[out] noise The noise polynomial in the given ciphertext. This
+        must remain secret to maintain security. 
+        @throws std::invalid_argument if encrypted is not valid for the encryption
+        parameters
+        @throws std::invalid_argument if encrypted is not in the default NTT form
+        */
+        void decrypt_and_extract_noise(const Ciphertext &encrypted, Plaintext &destination, Ciphertext &noise);
+
+        /*
         Computes the invariant noise of a ciphertext. The invariant noise is
         a value that increases with FHE operations. This function only works
         with the BFV scheme.
@@ -121,7 +136,7 @@ namespace seal
         SEAL_NODISCARD int invariant_noise_budget(const Ciphertext &encrypted);
 
     private:
-        void bfv_decrypt(const Ciphertext &encrypted, Plaintext &destination, MemoryPoolHandle pool);
+        void bfv_decrypt(const Ciphertext &encrypted, Plaintext &destination, Ciphertext *noise, MemoryPoolHandle pool);
 
         void ckks_decrypt(const Ciphertext &encrypted, Plaintext &destination, MemoryPoolHandle pool);
 

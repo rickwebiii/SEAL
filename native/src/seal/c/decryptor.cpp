@@ -61,6 +61,28 @@ SEAL_C_FUNC Decryptor_Decrypt(void *thisptr, void *encrypted, void *destination)
     }
 }
 
+SEAL_C_FUNC Decryptor_DecryptAndExtractNoise(void *thisptr, void *encrypted, void *destination, void *noise)
+{
+    Decryptor *decryptor = FromVoid<Decryptor>(thisptr);
+    IfNullRet(decryptor, E_POINTER);
+    Ciphertext *encryptedptr = FromVoid<Ciphertext>(encrypted);
+    IfNullRet(encryptedptr, E_POINTER);
+    Plaintext *destinationptr = FromVoid<Plaintext>(destination);
+    IfNullRet(destinationptr, E_POINTER);
+    Ciphertext *noiseptr = FromVoid<Ciphertext>(noise);
+    IfNullRet(encryptedptr, E_POINTER);
+
+    try
+    {
+        decryptor->decrypt_and_extract_noise(*encryptedptr, *destinationptr, *noiseptr);
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+}
+
 SEAL_C_FUNC Decryptor_InvariantNoise(void *thisptr, void *encrypted, double *invariant_noise_budget)
 {
     Decryptor *decryptor = FromVoid<Decryptor>(thisptr);

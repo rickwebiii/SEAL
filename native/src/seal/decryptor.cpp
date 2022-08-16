@@ -96,7 +96,7 @@ namespace seal
         switch (parms.scheme())
         {
         case scheme_type::bfv:
-            bfv_decrypt(encrypted, destination, pool_);
+            bfv_decrypt(encrypted, destination, nullptr, pool_);
             return;
 
         case scheme_type::ckks:
@@ -112,7 +112,37 @@ namespace seal
         }
     }
 
-    void Decryptor::bfv_decrypt(const Ciphertext &encrypted, Plaintext &destination, MemoryPoolHandle pool)
+    void Decryptor::decrypt_and_extract_noise(const Ciphertext &encrypted, Plaintext &destination, Ciphertext &noise)
+    {
+        // Verify that encrypted is valid.
+        if (!is_valid_for(encrypted, context_))
+        {
+            throw invalid_argument("encrypted is not valid for encryption parameters");
+        }
+
+        // Additionally check that ciphertext doesn't have trivial size
+        if (encrypted.size() != SEAL_CIPHERTEXT_SIZE_MIN)
+        {
+            throw invalid_argument("Only relinearized ciphertexts supported.");
+        }
+
+        auto &context_data = *context_.first_context_data();
+        auto &parms = context_data.parms();
+
+        switch (parms.scheme())
+        {
+        case scheme_type::bfv:
+            bfv_decrypt(encrypted, destination, &noise, pool_);
+            return;
+
+        case scheme_type::ckks:
+        case scheme_type::bgv:
+        default:
+            throw invalid_argument("unsupported scheme");
+        }
+    }
+
+    void Decryptor::bfv_decrypt(const Ciphertext &encrypted, Plaintext &destination, Ciphertext *noise, MemoryPoolHandle pool)
     {
         if (encrypted.is_ntt_form())
         {
@@ -122,6 +152,7 @@ namespace seal
         auto &context_data = *context_.get_context_data(encrypted.parms_id());
         auto &parms = context_data.parms();
         auto &coeff_modulus = parms.coeff_modulus();
+        auto &plain_modulus = parms.plain_modulus();
         size_t coeff_count = parms.poly_modulus_degree();
         size_t coeff_modulus_size = coeff_modulus.size();
 
@@ -138,12 +169,26 @@ namespace seal
         // The secret key powers are already NTT transformed.
         dot_product_ct_sk_array(encrypted, tmp_dest_modq, pool_);
 
+        if (noise != nullptr) {
+            ConstRNSIter noise_poly(tmp_dest_modq);
+
+            noise->resize(context_, encrypted.size());
+            RNSIter noise_iter(noise->data(), coeff_count);
+
+            multiply_poly_scalar_coeffmod(
+                noise_poly, coeff_modulus_size, plain_modulus.value(), coeff_modulus, noise_iter);
+
+            context_data.rns_tool()->base_q()->compose_array(noise->data(), coeff_count, pool_);
+        }
+
         // Allocate a full size destination to write to
         destination.parms_id() = parms_id_zero;
         destination.resize(coeff_count);
 
         // Divide scaling variant using BEHZ FullRNS techniques
         context_data.rns_tool()->decrypt_scale_and_round(tmp_dest_modq, destination.data(), pool);
+
+
 
         // How many non-zero coefficients do we really have in the result?
         size_t plain_coeff_count = get_significant_uint64_count_uint(destination.data(), coeff_count);
