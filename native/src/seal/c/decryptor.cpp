@@ -61,7 +61,7 @@ SEAL_C_FUNC Decryptor_Decrypt(void *thisptr, void *encrypted, void *destination)
     }
 }
 
-SEAL_C_FUNC Decryptor_Decrypt(void *thisptr, void *encrypted, void *destination, void *noise)
+SEAL_C_FUNC Decryptor_DecryptAndExtractNoise(void *thisptr, void *encrypted, void *destination, void *noise)
 {
     Decryptor *decryptor = FromVoid<Decryptor>(thisptr);
     IfNullRet(decryptor, E_POINTER);
