@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 #include "seal/ciphertext.h"
+#include "seal/polyarray.h"
 #include "seal/randomgen.h"
 #include "seal/randomtostd.h"
 #include "seal/util/clipnormal.h"
@@ -31,6 +32,7 @@ namespace seal
             SEAL_ITERATE(iter(destination), coeff_count, [&](auto &I) {
                 uint64_t rand = dist(engine);
                 uint64_t flag = static_cast<uint64_t>(-static_cast<int64_t>(rand == 0));
+
                 SEAL_ITERATE(
                     iter(StrideIter<uint64_t *>(&I, coeff_count), coeff_modulus), coeff_modulus_size,
                     [&](auto J) { *get<0>(J) = rand + (flag & get<1>(J).value()) - 1; });
@@ -94,6 +96,7 @@ namespace seal
             SEAL_ITERATE(iter(destination), coeff_count, [&](auto &I) {
                 int32_t noise = cbd();
                 uint64_t flag = static_cast<uint64_t>(-static_cast<int64_t>(noise < 0));
+
                 SEAL_ITERATE(
                     iter(StrideIter<uint64_t *>(&I, coeff_count), coeff_modulus), coeff_modulus_size,
                     [&](auto J) { *get<0>(J) = static_cast<uint64_t>(noise) + (flag & get<1>(J).value()); });
@@ -187,9 +190,15 @@ namespace seal
         }
 
         void encrypt_zero_asymmetric(
-            const PublicKey &public_key, const SEALContext &context, parms_id_type parms_id, bool is_ntt_form,
-            Ciphertext &destination)
-        {
+            const PublicKey &public_key, 
+            const SEALContext &context, 
+            parms_id_type parms_id, 
+            bool is_ntt_form,
+            bool export_noise,
+            Ciphertext &destination, 
+            PolynomialArray &u_destination,
+            PolynomialArray &e_destination
+        ) {
 #ifdef SEAL_DEBUG
             if (!is_valid_for(public_key, context))
             {
@@ -226,9 +235,15 @@ namespace seal
             auto u(allocate_poly(coeff_count, coeff_modulus_size, pool));
             sample_poly_ternary(prng, parms, u.get());
 
+            if (export_noise) {
+                u_destination.reserve(1, coeff_count, coeff_modulus);
+                u_destination.insert_polynomial(0, u.get());
+            }
+
             // c[j] = u * public_key[j]
             for (size_t i = 0; i < coeff_modulus_size; i++)
             {
+                // Offset into array for modulus m_i
                 ntt_negacyclic_harvey(u.get() + i * coeff_count, ntt_tables[i]);
                 for (size_t j = 0; j < encrypted_size; j++)
                 {
@@ -244,12 +259,21 @@ namespace seal
                 }
             }
 
+            if (export_noise) {
+                e_destination.reserve(encrypted_size, coeff_count, coeff_modulus);
+            }
+
             // Generate e_j <-- chi
             // c[j] = public_key[j] * u + e[j] in BFV/CKKS, = public_key[j] * u + p * e[j] in BGV,
             for (size_t j = 0; j < encrypted_size; j++)
             {
+                // u is being modified in place to add some error terms.
                 SEAL_NOISE_SAMPLER(prng, parms, u.get());
                 RNSIter gaussian_iter(u.get(), coeff_count);
+
+                if (export_noise) {
+                    e_destination.insert_polynomial(j, u.get());
+                }
 
                 // In BGV, p * e is used
                 if (type == scheme_type::bgv)

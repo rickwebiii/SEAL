@@ -188,8 +188,6 @@ namespace seal
         // Divide scaling variant using BEHZ FullRNS techniques
         context_data.rns_tool()->decrypt_scale_and_round(tmp_dest_modq, destination.data(), pool);
 
-
-
         // How many non-zero coefficients do we really have in the result?
         size_t plain_coeff_count = get_significant_uint64_count_uint(destination.data(), coeff_count);
 

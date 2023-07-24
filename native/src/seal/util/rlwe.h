@@ -6,6 +6,7 @@
 #include "seal/ciphertext.h"
 #include "seal/context.h"
 #include "seal/encryptionparams.h"
+#include "seal/polyarray.h"
 #include "seal/publickey.h"
 #include "seal/randomgen.h"
 #include "seal/secretkey.h"
@@ -90,11 +91,18 @@ namespace seal
         @param[in] context The SEALContext containing a chain of ContextData
         @param[in] parms_id Indicates the level of encryption
         @param[in] is_ntt_form If true, store ciphertext in NTT form
+        @param[in] export_noise Whether to export the ciphertext noise inputs (u, e_i)
         @param[out] destination The output ciphertext - an encryption of zero
+        @param[out] u The u noise value.
+        @param[out] e The u noise value.
         */
         void encrypt_zero_asymmetric(
             const PublicKey &public_key, const SEALContext &context, parms_id_type parms_id, bool is_ntt_form,
-            Ciphertext &destination);
+            bool export_noise,
+            Ciphertext &destination,
+            PolynomialArray &u_destination,
+            PolynomialArray &e_destination
+        );
 
         /**
         Create an encryption of zero with a secret key and store in a ciphertext.

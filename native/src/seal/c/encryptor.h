@@ -21,6 +21,9 @@ SEAL_C_FUNC Encryptor_SetSecretKey(void *thisptr, void *secret_key);
 
 SEAL_C_FUNC Encryptor_Encrypt(void *thisptr, void *plaintext, void *destination, void *pool_handle);
 
+SEAL_C_FUNC Encryptor_EncryptReturnComponents(
+    void *thisptr, void *plaintext, bool disable_special_modulus, void *destination, void *u_destination, void *e_destination, void *pool_handle);
+
 SEAL_C_FUNC Encryptor_EncryptZero1(void *thisptr, uint64_t *parms_id, void *destination, void *pool_handle);
 
 SEAL_C_FUNC Encryptor_EncryptZero2(void *thisptr, void *destination, void *pool_handle);

@@ -131,6 +131,44 @@ SEAL_C_FUNC Encryptor_Encrypt(void *thisptr, void *plaintext, void *destination,
     }
 }
 
+
+SEAL_C_FUNC Encryptor_EncryptReturnComponents(
+    void *thisptr, 
+    void *plaintext, 
+    bool disable_special_modulus, 
+    void *destination, 
+    void *u_destination, 
+    void *e_destination, 
+    void *pool_handle) 
+{
+    Encryptor *encryptor = FromVoid<Encryptor>(thisptr);
+    IfNullRet(encryptor, E_POINTER);
+    Plaintext *plain = FromVoid<Plaintext>(plaintext);
+    IfNullRet(plain, E_POINTER);
+    Ciphertext *cipher = FromVoid<Ciphertext>(destination);
+    IfNullRet(cipher, E_POINTER);
+    PolynomialArray *u_dest = FromVoid<PolynomialArray>(u_destination);
+    IfNullRet(u_dest, E_POINTER);
+    PolynomialArray *e_dest = FromVoid<PolynomialArray>(e_destination);
+    IfNullRet(e_dest, E_POINTER);
+    unique_ptr<MemoryPoolHandle> pool = MemHandleFromVoid(pool_handle);
+
+    try
+    {
+        encryptor->encrypt(*plain, disable_special_modulus, *cipher, *u_dest, *e_dest, *pool);
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+    catch (const logic_error &)
+    {
+        return COR_E_INVALIDOPERATION;
+    }
+
+}
+
 SEAL_C_FUNC Encryptor_EncryptZero1(void *thisptr, uint64_t *parms_id, void *destination, void *pool_handle)
 {
     Encryptor *encryptor = FromVoid<Encryptor>(thisptr);

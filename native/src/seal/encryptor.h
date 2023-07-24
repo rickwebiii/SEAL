@@ -9,10 +9,12 @@
 #include "seal/memorymanager.h"
 #include "seal/plaintext.h"
 #include "seal/publickey.h"
+#include "seal/polyarray.h"
 #include "seal/secretkey.h"
 #include "seal/serializable.h"
 #include "seal/util/defines.h"
 #include "seal/util/ntt.h"
+#include "seal/util/rns.h"
 #include <vector>
 
 namespace seal
@@ -135,6 +137,44 @@ namespace seal
             const Plaintext &plain, Ciphertext &destination, MemoryPoolHandle pool = MemoryManager::GetPool()) const
         {
             encrypt_internal(plain, true, false, destination, pool);
+        }
+
+        /**
+        Encrypts a plaintext with the public key and stores the result in
+        destination. In addition, returns the u and e parameters from the
+        encryption.
+
+        The encryption parameters for the resulting ciphertext correspond to:
+        1) in BFV/BGV, the highest (data) level in the modulus switching chain,
+        2) in CKKS, the encryption parameters of the plaintext.
+        Dynamic memory allocations in the process are allocated from the memory
+        pool pointed to by the given MemoryPoolHandle.
+
+        @param[in] plain The plaintext to encrypt
+        @param[in] disable_special_modulus Whether to disable the special modulus.
+        Only applies to BFV.
+        @param[out] destination The ciphertext to overwrite with the encrypted
+        plaintext
+        @param[out] u_destination The polynomial array to write into with the u
+        parameter from BFV. This is required to be un-reserved when passed in.
+        @param[out] e_destination The polynomial array to write into with the e
+        parameter from BFV. This is required to be un-reserved when passed in.
+        @param[in] pool The MemoryPoolHandle pointing to a valid memory pool
+        @throws std::logic_error if a public key is not set
+        @throws std::invalid_argument if plain is not valid for the encryption
+        parameters
+        @throws std::invalid_argument if plain is not in default NTT form
+        @throws std::invalid_argument if pool is uninitialized
+        */
+        inline void encrypt(
+            const Plaintext &plain, 
+            bool disable_special_modulus, 
+            Ciphertext &destination, 
+            PolynomialArray &u_destination, 
+            PolynomialArray &e_destination, 
+            MemoryPoolHandle pool = MemoryManager::GetPool()) const
+        {
+            encrypt_internal(plain, true, false, disable_special_modulus, true, destination, u_destination, e_destination, pool);
         }
 
         /**
@@ -416,11 +456,30 @@ namespace seal
         Encryptor &operator=(Encryptor &&assign) = delete;
 
         void encrypt_zero_internal(
-            parms_id_type parms_id, bool is_asymmetric, bool save_seed, Ciphertext &destination,
+            parms_id_type parms_id, bool is_asymmetric, bool save_seed, 
+            Ciphertext &destination,
+            MemoryPoolHandle pool = MemoryManager::GetPool()) const;
+
+        void encrypt_zero_internal(
+            parms_id_type parms_id, bool is_asymmetric, bool save_seed, 
+            bool disable_special_modulus,
+            bool export_noise, Ciphertext &destination,
+            PolynomialArray &u_destination,
+            PolynomialArray &e_destination,
             MemoryPoolHandle pool = MemoryManager::GetPool()) const;
 
         void encrypt_internal(
-            const Plaintext &plain, bool is_asymmetric, bool save_seed, Ciphertext &destination,
+            const Plaintext &plain, bool is_asymmetric, bool save_seed, 
+            Ciphertext &destination, 
+            MemoryPoolHandle pool = MemoryManager::GetPool()) const;
+
+        void encrypt_internal(
+            const Plaintext &plain, bool is_asymmetric, bool save_seed, 
+            bool disable_special_modulus,
+            bool export_noise, 
+            Ciphertext &destination,
+            PolynomialArray &u_destination,
+            PolynomialArray &e_destination,
             MemoryPoolHandle pool = MemoryManager::GetPool()) const;
 
         SEALContext context_;

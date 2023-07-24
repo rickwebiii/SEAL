@@ -19,8 +19,10 @@ target_sources(sealc PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/memorypoolhandle.cpp
     ${CMAKE_CURRENT_LIST_DIR}/modulus.cpp
     ${CMAKE_CURRENT_LIST_DIR}/plaintext.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/polyarray.cpp
     ${CMAKE_CURRENT_LIST_DIR}/publickey.cpp
     ${CMAKE_CURRENT_LIST_DIR}/relinkeys.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/rns.cpp
     ${CMAKE_CURRENT_LIST_DIR}/sealcontext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/secretkey.cpp
     ${CMAKE_CURRENT_LIST_DIR}/serialization.cpp
@@ -49,8 +51,10 @@ install(
         ${CMAKE_CURRENT_LIST_DIR}/memorypoolhandle.h
         ${CMAKE_CURRENT_LIST_DIR}/modulus.h
         ${CMAKE_CURRENT_LIST_DIR}/plaintext.h
+        ${CMAKE_CURRENT_LIST_DIR}/polyarray.h
         ${CMAKE_CURRENT_LIST_DIR}/publickey.h
         ${CMAKE_CURRENT_LIST_DIR}/relinkeys.h
+        ${CMAKE_CURRENT_LIST_DIR}/rns.h
         ${CMAKE_CURRENT_LIST_DIR}/sealcontext.h
         ${CMAKE_CURRENT_LIST_DIR}/secretkey.h
         ${CMAKE_CURRENT_LIST_DIR}/serialization.h
