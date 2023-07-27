@@ -52,6 +52,24 @@ namespace seal
         }
     }
 
+    PolynomialArray::PolynomialArray(const PolynomialArray &copy): PolynomialArray(copy.pool_) {
+        // These parameters in the result object are internally stored once
+        // reserve is called.
+        auto poly_size = copy.poly_size();
+        auto coeff_modulus_size = copy.coeff_modulus_size();
+        auto coeff_modulus = copy.coeff_modulus_;
+        auto poly_modulus_degree = copy.poly_modulus_degree();
+
+        // Then reserve
+        reserve(poly_size, poly_modulus_degree, coeff_modulus);
+
+        for (std::size_t i = 0; i < poly_size; i++) {
+            if (copy.polynomial_reserved_[i]) {
+                const auto data_ptr = copy.get_polynomial(i);
+                insert_polynomial(i, data_ptr);
+            }
+        }
+    }
 
     void PolynomialArray::reserve(
         std::size_t poly_size,

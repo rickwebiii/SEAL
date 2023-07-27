@@ -45,6 +45,20 @@ namespace seal
                     const SEALContext &context, const PublicKey &public_key, MemoryPoolHandle pool
                 );
 
+                /**
+                Creates a new ciphertext by copying a given one.
+
+                @param[in] source The ciphertext to move from
+                */
+                PolynomialArray(const PolynomialArray &copy);
+
+                /**
+                Creates a new ciphertext by moving a given one.
+
+                @param[in] source The ciphertext to move from
+                */
+                PolynomialArray(PolynomialArray &&source) = default;
+
                 ~PolynomialArray()
                 {
                     if (zero_on_destruction_) {
@@ -63,6 +77,13 @@ namespace seal
                         is_rns_ = true;
                     }
                 }
+
+                /**
+                Copies a given ciphertext to the current one.
+
+                @param[in] assign The ciphertext to copy from
+                */
+                PolynomialArray &operator=(const PolynomialArray &assign);
 
                 /**
                 Reserve space for a specfic polynomial. This can only be called
@@ -145,7 +166,22 @@ namespace seal
                 polynomial array. Throws a logic error if the index is larger
                 than the number of polynomials held by the polynomial array.
                 */
-                SEAL_NODISCARD inline std::uint64_t* get_polynomial(std::size_t poly_index) 
+                SEAL_NODISCARD inline std::uint64_t *get_polynomial(std::size_t poly_index) 
+                {
+                    if (poly_index >= poly_size_) {
+                        throw std::logic_error("Polynomial index greater than number of polynomials stored");
+                    }
+   
+                    auto poly_start = data_.get() + poly_len_ * poly_index;
+                    return poly_start;
+                }
+
+                /**
+                Get a pointer to the start of a specific polynomial in the
+                polynomial array. Throws a logic error if the index is larger
+                than the number of polynomials held by the polynomial array.
+                */
+                SEAL_NODISCARD inline const std::uint64_t *get_polynomial(std::size_t poly_index) const  
                 {
                     if (poly_index >= poly_size_) {
                         throw std::logic_error("Polynomial index greater than number of polynomials stored");
@@ -205,20 +241,15 @@ namespace seal
                 // PolynomialArray without knowing the modulus yet (it
                 // gets passed in later)
                 void set_modulus(const std::vector<Modulus> &coeff_modulus){
+                    coeff_modulus_ = coeff_modulus;
                     coeff_modulus_size_ = coeff_modulus.size();
-
-                    // Other classes do a check that the modulus set is correct;
-                    // the assumption here is that we are creating an instance
-                    // of this class from an existing (verified) modulus set.
-                    coeff_modulus_ = allocate<Modulus>(coeff_modulus_size_, pool_);
-                    copy_n(coeff_modulus.cbegin(), coeff_modulus_size_, coeff_modulus_.get());
 
                     rnsbase_ = allocate<RNSBase>(pool_, coeff_modulus, pool_);
                 }
 
                 MemoryPoolHandle pool_;
                 Pointer<uint64_t> data_;
-                Pointer<Modulus> coeff_modulus_;
+                std::vector<Modulus> coeff_modulus_;
                 Pointer<RNSBase> rnsbase_;
 
                 std::size_t poly_size_ = 0;

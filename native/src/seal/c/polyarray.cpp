@@ -77,6 +77,16 @@ SEAL_C_FUNC PolynomialArray_CreateFromPublicKey(void *memoryPoolHandle, void *co
     }
 }
 
+SEAL_C_FUNC PolynomialArray_Copy(void *copy, void **poly_array) {
+    PolynomialArray *copyptr = FromVoid<PolynomialArray>(copy);
+    IfNullRet(copyptr, E_POINTER);
+    IfNullRet(poly_array, E_POINTER);
+
+    PolynomialArray *pa = new PolynomialArray(*copyptr);
+    *poly_array = pa;
+    return S_OK;
+}
+
 SEAL_C_FUNC PolynomialArray_Destroy(void *thisptr)
 {
     PolynomialArray *poly_array = FromVoid<PolynomialArray>(thisptr);
