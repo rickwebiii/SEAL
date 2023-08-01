@@ -8,6 +8,8 @@
 // SEAL
 #include "seal/encryptor.h"
 
+#include <optional>
+
 using namespace std;
 using namespace seal;
 using namespace seal::c;
@@ -155,7 +157,7 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponents(
 
     try
     {
-        encryptor->encrypt(*plain, disable_special_modulus, *cipher, *u_dest, *e_dest, *pool);
+        encryptor->encrypt(*plain, disable_special_modulus, *cipher, *u_dest, *e_dest, {}, *pool);
         return S_OK;
     }
     catch (const invalid_argument &)
@@ -166,7 +168,54 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponents(
     {
         return COR_E_INVALIDOPERATION;
     }
+}
 
+SEAL_C_FUNC Encryptor_EncryptReturnComponentsSetSeed(
+    void *thisptr,
+    void *plaintext,
+    bool disable_special_modulus,
+    void *destination,
+    void *u_destination,
+    void *e_destination,
+    void *seed,
+    void *pool_handle)
+{
+    Encryptor *encryptor = FromVoid<Encryptor>(thisptr);
+    IfNullRet(encryptor, E_POINTER);
+    Plaintext *plain = FromVoid<Plaintext>(plaintext);
+    IfNullRet(plain, E_POINTER);
+    Ciphertext *cipher = FromVoid<Ciphertext>(destination);
+    IfNullRet(cipher, E_POINTER);
+    PolynomialArray *u_dest = FromVoid<PolynomialArray>(u_destination);
+    IfNullRet(u_dest, E_POINTER);
+    PolynomialArray *e_dest = FromVoid<PolynomialArray>(e_destination);
+    IfNullRet(e_dest, E_POINTER);
+    std::array<std::uint64_t, prng_seed_uint64_count> *seed_array = FromVoid<std::array<std::uint64_t, prng_seed_uint64_count>>(seed);
+    IfNullRet(seed_array, E_POINTER);
+    unique_ptr<MemoryPoolHandle> pool = MemHandleFromVoid(pool_handle);
+
+    auto seed_arr = std::optional<std::array<std::uint64_t, prng_seed_uint64_count>>{*seed_array};
+
+    try
+    {
+        encryptor->encrypt(
+            *plain, 
+            disable_special_modulus, 
+            *cipher, 
+            *u_dest, 
+            *e_dest,  
+            seed_arr,
+            *pool);
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+    catch (const logic_error &)
+    {
+        return COR_E_INVALIDOPERATION;
+    }
 }
 
 SEAL_C_FUNC Encryptor_EncryptZero1(void *thisptr, uint64_t *parms_id, void *destination, void *pool_handle)

@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <ctime>
+#include <optional>
 #include "gtest/gtest.h"
 
 using namespace seal;

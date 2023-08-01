@@ -16,6 +16,7 @@
 #include "seal/util/ntt.h"
 #include "seal/util/rns.h"
 #include <vector>
+#include <optional>
 
 namespace seal
 {
@@ -172,9 +173,10 @@ namespace seal
             Ciphertext &destination, 
             PolynomialArray &u_destination, 
             PolynomialArray &e_destination, 
+            std::optional<prng_seed_type> seed = std::nullopt,
             MemoryPoolHandle pool = MemoryManager::GetPool()) const
         {
-            encrypt_internal(plain, true, false, disable_special_modulus, true, destination, u_destination, e_destination, pool);
+            encrypt_internal(plain, true, false, disable_special_modulus, true, destination, u_destination, e_destination, seed, pool);
         }
 
         /**
@@ -456,31 +458,46 @@ namespace seal
         Encryptor &operator=(Encryptor &&assign) = delete;
 
         void encrypt_zero_internal(
-            parms_id_type parms_id, bool is_asymmetric, bool save_seed, 
+            parms_id_type parms_id,
+            bool is_asymmetric,
+            bool save_seed, 
             Ciphertext &destination,
-            MemoryPoolHandle pool = MemoryManager::GetPool()) const;
+            MemoryPoolHandle pool = MemoryManager::GetPool()
+        ) const;
 
         void encrypt_zero_internal(
-            parms_id_type parms_id, bool is_asymmetric, bool save_seed, 
+            parms_id_type parms_id,
+            bool is_asymmetric,
+            bool save_seed, 
             bool disable_special_modulus,
-            bool export_noise, Ciphertext &destination,
-            PolynomialArray &u_destination,
-            PolynomialArray &e_destination,
-            MemoryPoolHandle pool = MemoryManager::GetPool()) const;
-
-        void encrypt_internal(
-            const Plaintext &plain, bool is_asymmetric, bool save_seed, 
-            Ciphertext &destination, 
-            MemoryPoolHandle pool = MemoryManager::GetPool()) const;
-
-        void encrypt_internal(
-            const Plaintext &plain, bool is_asymmetric, bool save_seed, 
-            bool disable_special_modulus,
-            bool export_noise, 
+            bool export_components,
             Ciphertext &destination,
             PolynomialArray &u_destination,
             PolynomialArray &e_destination,
-            MemoryPoolHandle pool = MemoryManager::GetPool()) const;
+            std::optional<prng_seed_type> seed = std::nullopt,
+            MemoryPoolHandle pool = MemoryManager::GetPool()
+        ) const;
+
+        void encrypt_internal(
+            const Plaintext &plain,
+            bool is_asymmetric,
+            bool save_seed, 
+            Ciphertext &destination, 
+            MemoryPoolHandle pool = MemoryManager::GetPool()
+        ) const;
+
+        void encrypt_internal(
+            const Plaintext &plain,
+            bool is_asymmetric,
+            bool save_seed, 
+            bool disable_special_modulus,
+            bool export_components, 
+            Ciphertext &destination,
+            PolynomialArray &u_destination,
+            PolynomialArray &e_destination,
+            std::optional<prng_seed_type> seed = std::nullopt,
+            MemoryPoolHandle pool = MemoryManager::GetPool()
+        ) const;
 
         SEALContext context_;
 

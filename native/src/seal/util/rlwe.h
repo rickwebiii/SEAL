@@ -11,6 +11,7 @@
 #include "seal/randomgen.h"
 #include "seal/secretkey.h"
 #include <cstdint>
+#include <optional>
 
 namespace seal
 {
@@ -91,17 +92,25 @@ namespace seal
         @param[in] context The SEALContext containing a chain of ContextData
         @param[in] parms_id Indicates the level of encryption
         @param[in] is_ntt_form If true, store ciphertext in NTT form
-        @param[in] export_noise Whether to export the ciphertext noise inputs (u, e_i)
+        @param[in] export_components Whether to export the ciphertext components (u, e_i)
         @param[out] destination The output ciphertext - an encryption of zero
-        @param[out] u The u noise value.
-        @param[out] e The u noise value.
+        @param[out] u The u component.
+        @param[out] e The e component.
+        @param[in] (Optional) Set seed for a deterministic encryption. NOTE:
+        while one can provide this parameter, it is currently disabled in the
+        encryption function. If you want to provide a seed, you will need to
+        uncomment code in this function's definition.
         */
         void encrypt_zero_asymmetric(
-            const PublicKey &public_key, const SEALContext &context, parms_id_type parms_id, bool is_ntt_form,
-            bool export_noise,
+            const PublicKey &public_key, 
+            const SEALContext &context, 
+            parms_id_type parms_id, 
+            bool is_ntt_form,
+            bool export_components,
             Ciphertext &destination,
             PolynomialArray &u_destination,
-            PolynomialArray &e_destination
+            PolynomialArray &e_destination,
+            std::optional<prng_seed_type> seed = std::nullopt
         );
 
         /**
@@ -114,9 +123,19 @@ namespace seal
         @param[in] is_ntt_form If true, store ciphertext in NTT form
         @param[in] save_seed If true, the second component of ciphertext is
         replaced with the random seed used to sample this component
+        @param[in] (Optional) Set seed for a deterministic encryption. NOTE:
+        while one can provide this parameter, it is currently disabled in the
+        encryption function. If you want to provide a seed, you will need to
+        uncomment code in this function's definition.
         */
         void encrypt_zero_symmetric(
-            const SecretKey &secret_key, const SEALContext &context, parms_id_type parms_id, bool is_ntt_form,
-            bool save_seed, Ciphertext &destination);
+            const SecretKey &secret_key, 
+            const SEALContext &context, 
+            parms_id_type parms_id, 
+            bool is_ntt_form,
+            bool save_seed, 
+            Ciphertext &destination,
+            std::optional<prng_seed_type> seed = std::nullopt
+        );
     } // namespace util
 } // namespace seal

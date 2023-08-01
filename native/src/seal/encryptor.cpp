@@ -86,8 +86,12 @@ namespace seal
     }
 
     void Encryptor::encrypt_zero_internal(
-        parms_id_type parms_id, bool is_asymmetric, bool save_seed, Ciphertext &destination,
-        MemoryPoolHandle pool) const
+        parms_id_type parms_id, 
+        bool is_asymmetric,
+        bool save_seed,
+        Ciphertext &destination,
+        MemoryPoolHandle pool
+    ) const
     {
         // Do not export noise.
         PolynomialArray u_destination;
@@ -97,11 +101,12 @@ namespace seal
             parms_id, 
             is_asymmetric, 
             save_seed, 
-            false, 
-            false, 
+            false, // disable_special_modulus
+            false, // export_components
             destination, 
             u_destination, 
             e_destination, 
+            {}, // seed
             pool
         );
     }
@@ -111,11 +116,13 @@ namespace seal
         bool is_asymmetric, 
         bool save_seed, 
         bool disable_special_modulus,
-        bool export_noise, 
+        bool export_components, 
         Ciphertext &destination,
         PolynomialArray &u_destination,
         PolynomialArray &e_destination,
-        MemoryPoolHandle pool) const
+        optional<prng_seed_type> seed,
+        MemoryPoolHandle pool
+    ) const
     {
         // Verify parameters.
         if (!pool)
@@ -167,10 +174,11 @@ namespace seal
                     context_, 
                     prev_parms_id, 
                     is_ntt_form, 
-                    export_noise, 
+                    export_components, 
                     temp, 
                     u_destination, 
-                    e_destination
+                    e_destination,
+                    seed
                 );
 
                 // Modulus switching
@@ -206,17 +214,25 @@ namespace seal
                     context_, 
                     parms_id, 
                     is_ntt_form, 
-                    export_noise, 
+                    export_components, 
                     destination, 
                     u_destination, 
-                    e_destination
+                    e_destination,
+                    seed
                 );
             }
         }
         else
         {
             // Does not require modulus switching
-            util::encrypt_zero_symmetric(secret_key_, context_, parms_id, is_ntt_form, save_seed, destination);
+            util::encrypt_zero_symmetric(
+                secret_key_,
+                context_,
+                parms_id,
+                is_ntt_form,
+                save_seed,
+                destination
+            );
         }
     }
 
@@ -240,10 +256,11 @@ namespace seal
         bool is_asymmetric, 
         bool save_seed, 
         bool disable_special_modulus,
-        bool export_noise,
+        bool export_components,
         Ciphertext &destination,
         PolynomialArray &u_destination,
         PolynomialArray &e_destination,
+        optional<prng_seed_type> seed,
         MemoryPoolHandle pool
     ) const
     {
@@ -277,7 +294,18 @@ namespace seal
                 throw invalid_argument("plain cannot be in NTT form");
             }
 
-            encrypt_zero_internal(context_.first_parms_id(), is_asymmetric, save_seed, disable_special_modulus, export_noise, destination, u_destination, e_destination, pool);
+            encrypt_zero_internal(
+                context_.first_parms_id(), 
+                is_asymmetric, 
+                save_seed, 
+                disable_special_modulus, 
+                export_components, 
+                destination, 
+                u_destination, 
+                e_destination, 
+                seed, 
+                pool
+            );
 
             // Multiply plain by scalar coeff_div_plaintext and reposition if in upper-half.
             // Result gets added into the c_0 term of ciphertext (c_0,c_1).
@@ -295,7 +323,18 @@ namespace seal
             {
                 throw invalid_argument("plain is not valid for encryption parameters");
             }
-            encrypt_zero_internal(plain.parms_id(), is_asymmetric, save_seed, disable_special_modulus, export_noise, destination, u_destination, e_destination, pool);
+            encrypt_zero_internal(
+                plain.parms_id(),
+                is_asymmetric,
+                save_seed,
+                disable_special_modulus,
+                export_components,
+                destination,
+                u_destination,
+                e_destination,
+                seed,
+                pool
+            );
 
             auto &parms = context_.get_context_data(plain.parms_id())->parms();
             auto &coeff_modulus = parms.coeff_modulus();
@@ -315,7 +354,18 @@ namespace seal
             {
                 throw invalid_argument("plain cannot be in NTT form");
             }
-            encrypt_zero_internal(context_.first_parms_id(), is_asymmetric, save_seed, disable_special_modulus, export_noise, destination, u_destination, e_destination, pool);
+            encrypt_zero_internal(
+                context_.first_parms_id(),
+                is_asymmetric,
+                save_seed,
+                disable_special_modulus,
+                export_components,
+                destination,
+                u_destination,
+                e_destination,
+                seed,
+                pool
+            );
             auto context_data_ptr = context_.first_context_data();
             auto &parms = context_data_ptr->parms();
             size_t coeff_count = parms.poly_modulus_degree();
