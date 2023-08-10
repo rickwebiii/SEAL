@@ -255,8 +255,12 @@ namespace seal
             {
                 // Offset into array for modulus m_i
                 ntt_negacyclic_harvey(u.get() + i * coeff_count, ntt_tables[i]);
+
                 for (size_t j = 0; j < encrypted_size; j++)
                 {
+                    // Perform public_key[i] * u in NTT form. Note that here the
+                    // modulus of the public key is the lower modulus (the one
+                    // without the special prime).
                     dyadic_product_coeffmod(
                         u.get() + i * coeff_count, public_key.data().data(j) + i * coeff_count, coeff_count,
                         coeff_modulus[i], destination.data(j) + i * coeff_count);

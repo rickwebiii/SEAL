@@ -75,12 +75,24 @@ namespace seal
 
             SEAL_NODISCARD RNSBase drop(const Modulus &value) const;
 
+            /**
+            Converts a single multiprecision value into RNS form.
+            */
             void decompose(std::uint64_t *value, MemoryPoolHandle pool) const;
 
+            /**
+            Converts an array of multiprecision values into RNS format.
+            */
             void decompose_array(std::uint64_t *value, std::size_t count, MemoryPoolHandle pool) const;
 
+            /**
+            Converts an RNS value into a multiprecision value.
+            */
             void compose(std::uint64_t *value, MemoryPoolHandle pool) const;
 
+            /**
+            Converts an array of RNS values into an array of multiprecision values.
+            */
             void compose_array(std::uint64_t *value, std::size_t count, MemoryPoolHandle pool) const;
 
             SEAL_NODISCARD inline const Modulus *base() const noexcept

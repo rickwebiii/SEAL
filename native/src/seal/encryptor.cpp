@@ -247,8 +247,9 @@ namespace seal
         // Do not export noise.
         PolynomialArray u_destination;
         PolynomialArray e_destination;
+        Plaintext remainder_destination;
 
-        encrypt_internal(plain, is_asymmetric, save_seed, false, false, destination, u_destination, e_destination);
+        encrypt_internal(plain, is_asymmetric, save_seed, false, false, destination, u_destination, e_destination, remainder_destination);
     }
 
     void Encryptor::encrypt_internal(
@@ -260,6 +261,7 @@ namespace seal
         Ciphertext &destination,
         PolynomialArray &u_destination,
         PolynomialArray &e_destination,
+        Plaintext &remainder_destination,
         optional<prng_seed_type> seed,
         MemoryPoolHandle pool
     ) const
@@ -309,7 +311,11 @@ namespace seal
 
             // Multiply plain by scalar coeff_div_plaintext and reposition if in upper-half.
             // Result gets added into the c_0 term of ciphertext (c_0,c_1).
-            multiply_add_plain_with_scaling_variant(plain, *context_.first_context_data(), *iter(destination));
+            if (export_components) {
+                multiply_add_plain_with_scaling_variant(plain, *context_.first_context_data(), *iter(destination), true, remainder_destination);
+            } else {
+                multiply_add_plain_with_scaling_variant(plain, *context_.first_context_data(), *iter(destination));
+            }
         }
         else if (scheme == scheme_type::ckks)
         {

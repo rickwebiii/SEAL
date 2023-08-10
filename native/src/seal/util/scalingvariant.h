@@ -20,7 +20,18 @@ namespace seal
             const Plaintext &plain, const SEALContext::ContextData &context_data, RNSIter destination);
 
         void multiply_add_plain_with_scaling_variant(
-            const Plaintext &plain, const SEALContext::ContextData &context_data, RNSIter destination);
+            const Plaintext &plain, 
+            const SEALContext::ContextData &context_data, 
+            RNSIter destination,
+            bool export_remainder,
+            Plaintext &remainder_destination
+        );
+
+        void multiply_add_plain_with_scaling_variant(
+            const Plaintext &plain, 
+            const SEALContext::ContextData &context_data, 
+            RNSIter destination
+        );
 
         void multiply_sub_plain_with_scaling_variant(
             const Plaintext &plain, const SEALContext::ContextData &context_data, RNSIter destination);

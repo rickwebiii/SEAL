@@ -256,6 +256,9 @@ namespace seal
             return true;
         }
 
+        /**
+        Converts a single multiprecision value into RNS form.
+        */
         void RNSBase::decompose(uint64_t *value, MemoryPoolHandle pool) const
         {
             if (!value)
@@ -279,6 +282,9 @@ namespace seal
             }
         }
 
+        /**
+        Converts an array of multiprecision values into RNS format.
+        */
         void RNSBase::decompose_array(uint64_t *value, size_t count, MemoryPoolHandle pool) const
         {
             if (!value)
@@ -318,6 +324,9 @@ namespace seal
             }
         }
 
+        /**
+        Converts an RNS value into a multiprecision value.
+        */
         void RNSBase::compose(uint64_t *value, MemoryPoolHandle pool) const
         {
             if (!value)
@@ -351,6 +360,9 @@ namespace seal
             }
         }
 
+        /**
+        Converts an array of RNS values into an array of multiprecision values.
+        */
         void RNSBase::compose_array(uint64_t *value, size_t count, MemoryPoolHandle pool) const
         {
             if (!value)

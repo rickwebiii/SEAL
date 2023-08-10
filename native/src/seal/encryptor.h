@@ -160,6 +160,7 @@ namespace seal
         parameter from BFV. This is required to be un-reserved when passed in.
         @param[out] e_destination The polynomial array to write into with the e
         parameter from BFV. This is required to be un-reserved when passed in.
+        @param[out] remainder_destination The polynomial array to write into with the rounding component from BFV. Should be unreserved when passed in.
         @param[in] pool The MemoryPoolHandle pointing to a valid memory pool
         @throws std::logic_error if a public key is not set
         @throws std::invalid_argument if plain is not valid for the encryption
@@ -173,10 +174,23 @@ namespace seal
             Ciphertext &destination, 
             PolynomialArray &u_destination, 
             PolynomialArray &e_destination, 
+            Plaintext &remainder_destination,
             std::optional<prng_seed_type> seed = std::nullopt,
             MemoryPoolHandle pool = MemoryManager::GetPool()) const
         {
-            encrypt_internal(plain, true, false, disable_special_modulus, true, destination, u_destination, e_destination, seed, pool);
+            encrypt_internal(
+                plain, 
+                true, 
+                false, 
+                disable_special_modulus, 
+                true, 
+                destination, 
+                u_destination, 
+                e_destination, 
+                remainder_destination,
+                seed, 
+                pool
+            );
         }
 
         /**
@@ -495,6 +509,7 @@ namespace seal
             Ciphertext &destination,
             PolynomialArray &u_destination,
             PolynomialArray &e_destination,
+            Plaintext &remainder_destination,
             std::optional<prng_seed_type> seed = std::nullopt,
             MemoryPoolHandle pool = MemoryManager::GetPool()
         ) const;

@@ -141,6 +141,7 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponents(
     void *destination, 
     void *u_destination, 
     void *e_destination, 
+    void *remainder_destination,
     void *pool_handle) 
 {
     Encryptor *encryptor = FromVoid<Encryptor>(thisptr);
@@ -153,11 +154,22 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponents(
     IfNullRet(u_dest, E_POINTER);
     PolynomialArray *e_dest = FromVoid<PolynomialArray>(e_destination);
     IfNullRet(e_dest, E_POINTER);
+    Plaintext *r_dest = FromVoid<Plaintext>(remainder_destination);
+    IfNullRet(r_dest, E_POINTER);
     unique_ptr<MemoryPoolHandle> pool = MemHandleFromVoid(pool_handle);
 
     try
     {
-        encryptor->encrypt(*plain, disable_special_modulus, *cipher, *u_dest, *e_dest, {}, *pool);
+        encryptor->encrypt(
+            *plain, 
+            disable_special_modulus, 
+            *cipher, 
+            *u_dest, 
+            *e_dest, 
+            *r_dest, 
+            {}, 
+            *pool
+        );
         return S_OK;
     }
     catch (const invalid_argument &)
@@ -177,6 +189,7 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponentsSetSeed(
     void *destination,
     void *u_destination,
     void *e_destination,
+    void *remainder_destination,
     void *seed,
     void *pool_handle)
 {
@@ -190,6 +203,8 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponentsSetSeed(
     IfNullRet(u_dest, E_POINTER);
     PolynomialArray *e_dest = FromVoid<PolynomialArray>(e_destination);
     IfNullRet(e_dest, E_POINTER);
+    Plaintext *r_dest = FromVoid<Plaintext>(remainder_destination);
+    IfNullRet(r_dest, E_POINTER);
     std::array<std::uint64_t, prng_seed_uint64_count> *seed_array = FromVoid<std::array<std::uint64_t, prng_seed_uint64_count>>(seed);
     IfNullRet(seed_array, E_POINTER);
     unique_ptr<MemoryPoolHandle> pool = MemHandleFromVoid(pool_handle);
@@ -204,6 +219,7 @@ SEAL_C_FUNC Encryptor_EncryptReturnComponentsSetSeed(
             *cipher, 
             *u_dest, 
             *e_dest,  
+            *r_dest,
             seed_arr,
             *pool);
         return S_OK;
