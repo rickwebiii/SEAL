@@ -36,3 +36,5 @@ SEAL_C_FUNC PolynomialArray_PolySize(void *thisptr, uint64_t *size);
 SEAL_C_FUNC PolynomialArray_PolyModulusDegree(void *thisptr, uint64_t *size);
 
 SEAL_C_FUNC PolynomialArray_CoeffModulusSize(void *thisptr, uint64_t *size);
+
+SEAL_C_FUNC PolynomialArray_Drop(void *thisptr, void **poly_array);

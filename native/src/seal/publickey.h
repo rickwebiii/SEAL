@@ -248,6 +248,14 @@ namespace seal
         }
 
         /**
+        Returns whether the ciphertext is in NTT form.
+        */
+        SEAL_NODISCARD inline bool is_ntt_form() const noexcept
+        {
+            return pk_.is_ntt_form();
+        }
+
+        /**
         Enables access to private members of seal::PublicKey for SEAL_C.
         */
         struct PublicKeyPrivateHelper;

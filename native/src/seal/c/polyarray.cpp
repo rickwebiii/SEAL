@@ -206,3 +206,24 @@ SEAL_C_FUNC PolynomialArray_CoeffModulusSize(void *thisptr, uint64_t *size) {
     *size = poly_array->coeff_modulus_size();
     return S_OK;
 }
+
+SEAL_C_FUNC PolynomialArray_Drop(void *thisptr, void **poly_array)
+{
+    PolynomialArray *this_array = FromVoid<PolynomialArray>(thisptr);
+    IfNullRet(this_array, E_POINTER);
+
+    IfNullRet(poly_array, E_POINTER);
+    try
+    {
+        PolynomialArray result = this_array->drop();
+
+        // Move to the heap
+        PolynomialArray *return_array = new PolynomialArray(result);
+        *poly_array = return_array;
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+}

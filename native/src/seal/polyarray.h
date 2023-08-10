@@ -234,6 +234,11 @@ namespace seal
                     util::set_uint(data_.get(), len_, data);
                 }
 
+                /**
+                Switches the polynomial array down one modulus by dropping the
+                last modulus in the set.
+                */
+                PolynomialArray drop() const;
 
             private:
                 // We make an independent function instead of setting on

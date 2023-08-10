@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 #include "seal/polyarray.h"
+#include <algorithm>
 
 using namespace seal::util;
 
@@ -12,12 +13,16 @@ namespace seal
         const Ciphertext &ciphertext,
         MemoryPoolHandle pool
     ) : PolynomialArray(pool) {
-
         auto &parms = context.first_context_data()->parms();
         auto &coeff_modulus = parms.coeff_modulus();
         auto coeff_modulus_size = ciphertext.coeff_modulus_size();
         auto poly_modulus_degree = ciphertext.poly_modulus_degree();
         auto num_poly = ciphertext.size();
+
+        auto is_ntt_form = ciphertext.is_ntt_form();
+        size_t coeff_count = parms.poly_modulus_degree();
+        auto &context_data = *context.get_context_data(parms.parms_id());
+        auto ntt_tables = context_data.small_ntt_tables();
 
         reserve(num_poly, poly_modulus_degree, coeff_modulus);
 
@@ -27,6 +32,17 @@ namespace seal
             const auto data_ptr = ciphertext.data() + i * (poly_modulus_degree * coeff_modulus_size);
             insert_polynomial(i, data_ptr);
         }
+
+        // Convert out of NTT form for each polynomial. For BFV, this should not
+        // be necessary.
+        if (is_ntt_form) {
+            for (size_t i = 0; i < coeff_modulus_size; i++) {
+                for (size_t j = 0; j < num_poly; j++) {
+                    inverse_ntt_negacyclic_harvey(get_polynomial(j) + i * coeff_count, ntt_tables[i]);
+                }
+            }
+        }
+
     }
 
     PolynomialArray::PolynomialArray(
@@ -38,17 +54,31 @@ namespace seal
         auto &ciphertext = public_key.data();
         auto &parms = context.first_context_data()->parms();
         auto &coeff_modulus = parms.coeff_modulus();
-        auto coeff_modulus_size = ciphertext.coeff_modulus_size();
+        auto coeff_modulus_size = coeff_modulus.size();
         auto poly_modulus_degree = ciphertext.poly_modulus_degree();
         auto num_poly = ciphertext.size();
+
+        auto is_ntt_form = public_key.is_ntt_form();
+        size_t coeff_count = parms.poly_modulus_degree();
+        auto &context_data = *context.get_context_data(parms.parms_id());
+        auto ntt_tables = context_data.small_ntt_tables();
 
         reserve(num_poly, poly_modulus_degree, coeff_modulus);
 
         // The ciphertexts are stored in the same RNS format as the
         // other polynomial arrays.
         for (int i = 0; i < num_poly; i++) {
-            const auto data_ptr = ciphertext.data() + i * (poly_modulus_degree * coeff_modulus_size);
+            const auto data_ptr = public_key.data().data(i);
             insert_polynomial(i, data_ptr);
+        }
+
+        // Convert out of NTT form for each polynomial.
+        if (is_ntt_form) {
+            for (size_t i = 0; i < coeff_modulus_size; i++) {
+                for (size_t j = 0; j < num_poly; j++) {
+                    inverse_ntt_negacyclic_harvey(get_polynomial(j) + i * coeff_count, ntt_tables[i]);
+                }
+            }
         }
     }
 
@@ -122,5 +152,29 @@ namespace seal
         }
 
         is_rns_ = true;
+    }
+
+    /**
+    Switches the polynomial array down one modulus by dropping the last modulus
+    in the set.
+    */
+    PolynomialArray PolynomialArray::drop() const {
+        auto lower_modulus = rnsbase_.get()->drop();
+        auto new_coeff_modulus_size = lower_modulus.size();
+        std::vector<Modulus> lower_modulus_values(lower_modulus.size());
+
+        for (std::size_t i = 0; i < lower_modulus.size(); i++) {
+            lower_modulus_values[i] = lower_modulus[i];
+        }
+
+        auto new_len = poly_size_ * coeff_size_ * new_coeff_modulus_size;
+
+        PolynomialArray poly_array(pool_);
+        poly_array.reserve(poly_size_, coeff_size_, lower_modulus_values);
+
+        std::copy_n(data_.get(), new_len, poly_array.data_.get());
+        poly_array.polynomial_reserved_ = polynomial_reserved_;
+
+        return poly_array;
     }
 }
