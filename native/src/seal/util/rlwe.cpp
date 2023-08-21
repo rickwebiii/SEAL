@@ -235,11 +235,11 @@ namespace seal
             // then this code can be uncommented. Otherwise we do not actually
             // use the seed if it is provided to ensure the library is not
             // accidentally insecure.
-            // auto prng = seed.has_value() ? parms.random_generator()->create(seed.value())
-            //                              : parms.random_generator()->create();
+            auto prng = seed.has_value() ? parms.random_generator()->create(seed.value())
+                                         : parms.random_generator()->create();
 
             // Create a PRNG; u and the noise/error share the same PRNG
-            auto prng = parms.random_generator()->create();
+            // auto prng = parms.random_generator()->create();
 
             // Generate u <-- R_3
             auto u(allocate_poly(coeff_count, coeff_modulus_size, pool));
