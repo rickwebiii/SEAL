@@ -39,15 +39,18 @@ endmacro()
 
 # Link a thread library
 macro(seal_link_threads target)
-    # Require thread library
-    if(NOT TARGET Threads::Threads)
-        set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-        set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-        find_package(Threads REQUIRED)
-    endif()
+    if(NOT (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "wasm32"))
+        message(${CMAKE_SYSTEM_PROCESSOR})
+        # Require thread library
+        if(NOT TARGET Threads::Threads)
+            set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+            set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+            find_package(Threads REQUIRED)
+        endif()
 
-    # Link Threads
-    target_link_libraries(${target} PUBLIC Threads::Threads)
+        # Link Threads
+        target_link_libraries(${target} PUBLIC Threads::Threads)
+    endif()
 endmacro()
 
 # Include target to given export
@@ -73,18 +76,19 @@ macro(seal_combine_archives target dependency)
             set(DEL_CMD "del")
             set(DEL_CMD_OPTS "")
         else()
-            set(AR_CMD_PATH "ar")
+            set(AR_CMD_PATH ${CMAKE_AR})
             set(DEL_CMD "rm")
             set(DEL_CMD_OPTS "-rf")
         endif()
         if(EMSCRIPTEN)
             set(AR_CMD_PATH "emar")
         endif()
+        message(${CMAKE_CXX_OUTPUT_EXTENSION})
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND "${AR_CMD_PATH}" x $<TARGET_FILE:${target}>
             COMMAND "${AR_CMD_PATH}" x $<TARGET_FILE:${dependency}>
-            COMMAND "${AR_CMD_PATH}" rcs $<TARGET_FILE:${target}> *.o
-            COMMAND ${DEL_CMD} ${DEL_CMD_OPTS} *.o
+            COMMAND "${AR_CMD_PATH}" rcs $<TARGET_FILE:${target}> *${CMAKE_CXX_OUTPUT_EXTENSION}
+            COMMAND ${DEL_CMD} ${DEL_CMD_OPTS} *${CMAKE_CXX_OUTPUT_EXTENSION}
             WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
     endif()
 endmacro()
