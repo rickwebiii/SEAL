@@ -117,12 +117,14 @@ namespace seal
         Create an encryption of zero with a secret key and store in a ciphertext.
 
         @param[out] destination The output ciphertext - an encryption of zero
+        @param[out] e The e component.
         @param[in] secret_key The secret key used for encryption
         @param[in] context The SEALContext containing a chain of ContextData
         @param[in] parms_id Indicates the level of encryption
         @param[in] is_ntt_form If true, store ciphertext in NTT form
         @param[in] save_seed If true, the second component of ciphertext is
         replaced with the random seed used to sample this component
+        @param[in] export_components Whether to export the ciphertext noise component (e_i)
         @param[in] (Optional) Set seed for a deterministic encryption. NOTE:
         while one can provide this parameter, it is currently disabled in the
         encryption function. If you want to provide a seed, you will need to
@@ -134,7 +136,9 @@ namespace seal
             parms_id_type parms_id, 
             bool is_ntt_form,
             bool save_seed, 
+            bool export_components,
             Ciphertext &destination,
+            PolynomialArray &e_destination,
             std::optional<prng_seed_type> seed = std::nullopt
         );
     } // namespace util

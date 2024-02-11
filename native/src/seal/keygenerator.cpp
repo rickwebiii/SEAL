@@ -3,6 +3,7 @@
 
 #include "seal/keygenerator.h"
 #include "seal/randomtostd.h"
+#include "seal/polyarray.h"
 #include "seal/util/common.h"
 #include "seal/util/galois.h"
 #include "seal/util/ntt.h"
@@ -111,7 +112,8 @@ namespace seal
         }
 
         PublicKey public_key;
-        encrypt_zero_symmetric(secret_key_, context_, context_data.parms_id(), true, save_seed, public_key.data());
+        PolynomialArray e_destination;
+        encrypt_zero_symmetric(secret_key_, context_, context_data.parms_id(), true, save_seed, false, public_key.data(), e_destination);
 
         // Set the parms_id for public key
         public_key.parms_id() = context_data.parms_id();
@@ -319,11 +321,12 @@ namespace seal
 
         // KSwitchKeys data allocated from pool given by MemoryManager::GetPool.
         destination.resize(decomp_mod_count);
+        PolynomialArray e_destination;
 
         SEAL_ITERATE(iter(new_key, key_modulus, destination, size_t(0)), decomp_mod_count, [&](auto I) {
             SEAL_ALLOCATE_GET_COEFF_ITER(temp, coeff_count, pool_);
             encrypt_zero_symmetric(
-                secret_key_, context_, key_context_data.parms_id(), true, save_seed, get<2>(I).data());
+                secret_key_, context_, key_context_data.parms_id(), true, save_seed, false, get<2>(I).data(), e_destination);
             uint64_t factor = barrett_reduce_64(key_modulus.back().value(), get<1>(I));
             multiply_poly_scalar_coeffmod(get<0>(I), coeff_count, factor, get<1>(I), temp);
 

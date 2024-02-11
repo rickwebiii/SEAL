@@ -4,6 +4,7 @@
 #include "seal/ciphertext.h"
 #include "seal/memorymanager.h"
 #include "seal/publickey.h"
+#include "seal/secretkey.h"
 #include <stdexcept>
 
 using namespace seal::util;
@@ -43,6 +44,13 @@ namespace seal
                 */
                 PolynomialArray(
                     const SEALContext &context, const PublicKey &public_key, MemoryPoolHandle pool
+                );
+
+                /**
+                Create a PolynomialArray from a secret key.
+                */
+                PolynomialArray(
+                    const SEALContext &context, const SecretKey &secret_key, MemoryPoolHandle pool
                 );
 
                 /**

@@ -82,11 +82,41 @@ namespace seal
         }
     }
 
+    PolynomialArray::PolynomialArray(
+        const SEALContext &context,
+        const SecretKey &secret_key,
+        MemoryPoolHandle pool
+    ) : PolynomialArray(pool) {
+
+        auto &pt = secret_key.data();
+        auto &parms = context.first_context_data()->parms();
+        auto &plain_modulus = parms.plain_modulus();
+        auto &coeff_modulus = parms.coeff_modulus();
+        auto coeff_modulus_size = coeff_modulus.size();
+        auto poly_modulus_degree = pt.coeff_count();
+
+        auto is_ntt_form = pt.is_ntt_form();
+        size_t coeff_count = parms.poly_modulus_degree();
+        auto &context_data = *context.get_context_data(parms.parms_id());
+        auto ntt_tables = context_data.small_ntt_tables();
+
+        reserve(1, poly_modulus_degree, {plain_modulus});
+
+        const auto data_ptr = pt.data();
+        insert_polynomial(0, data_ptr);
+
+        // Convert out of NTT form for each polynomial.
+        if (is_ntt_form) {
+            for (size_t i = 0; i < coeff_modulus_size; i++) {
+                inverse_ntt_negacyclic_harvey(get_polynomial(0) + i * coeff_count, ntt_tables[i]);
+            }
+        }
+    }
+
     PolynomialArray::PolynomialArray(const PolynomialArray &copy): PolynomialArray(copy.pool_) {
         // These parameters in the result object are internally stored once
         // reserve is called.
         auto poly_size = copy.poly_size();
-        auto coeff_modulus_size = copy.coeff_modulus_size();
         auto coeff_modulus = copy.coeff_modulus_;
         auto poly_modulus_degree = copy.poly_modulus_degree();
 

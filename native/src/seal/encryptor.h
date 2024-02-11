@@ -331,6 +331,46 @@ namespace seal
         }
 
         /**
+        Encrypts a plaintext with the public key and stores the result in
+        destination. In addition, returns the e parameters from the
+        encryption.
+
+        The encryption parameters for the resulting ciphertext correspond to:
+        1) in BFV/BGV, the highest (data) level in the modulus switching chain,
+        2) in CKKS, the encryption parameters of the plaintext.
+        Dynamic memory allocations in the process are allocated from the memory
+        pool pointed to by the given MemoryPoolHandle.
+
+        @param[in] plain The plaintext to encrypt
+        @param[in] disable_special_modulus Whether to disable the special modulus.
+        Only applies to BFV.
+        @param[out] destination The ciphertext to overwrite with the encrypted
+        plaintext
+        @param[out] e_destination The polynomial array to write into with the e
+        parameter from BFV. This is required to be un-reserved when passed in.
+        @param[out] remainder_destination The polynomial array to write into with the rounding component from BFV.
+        Should be unreserved when passed in.
+        @param[in] pool The MemoryPoolHandle pointing to a valid memory pool
+        @throws std::logic_error if a public key is not set
+        @throws std::invalid_argument if plain is not valid for the encryption
+        parameters
+        @throws std::invalid_argument if plain is not in default NTT form
+        @throws std::invalid_argument if pool is uninitialized
+        */
+        inline void encrypt_symmetric(
+            const Plaintext &plain, Ciphertext &destination, PolynomialArray &e_destination,
+            Plaintext &remainder_destination, std::optional<prng_seed_type> seed = std::nullopt,
+            MemoryPoolHandle pool = MemoryManager::GetPool()) const
+        {
+            // The u component isn't relevant for symmetric encryptions
+            PolynomialArray u_destination;
+
+            encrypt_internal(
+                plain, false, false, true, true, destination, u_destination, e_destination, remainder_destination, seed,
+                pool);
+        }
+
+        /**
         Encrypts a plaintext with the secret key and returns the ciphertext as
         a serializable object.
 

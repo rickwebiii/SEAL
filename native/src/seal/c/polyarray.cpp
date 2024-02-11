@@ -77,7 +77,32 @@ SEAL_C_FUNC PolynomialArray_CreateFromPublicKey(void *memoryPoolHandle, void *co
     }
 }
 
-SEAL_C_FUNC PolynomialArray_Copy(void *copy, void **poly_array) {
+SEAL_C_FUNC PolynomialArray_CreateFromSecretKey(
+    void *memoryPoolHandle, void *context, void *secret_key, void **poly_array)
+{
+    const SEALContext *ctx = FromVoid<SEALContext>(context);
+    IfNullRet(ctx, E_POINTER);
+
+    const SecretKey *sk = FromVoid<SecretKey>(secret_key);
+    IfNullRet(sk, E_POINTER);
+
+    IfNullRet(poly_array, E_POINTER);
+    unique_ptr<MemoryPoolHandle> handle = MemHandleFromVoid(memoryPoolHandle);
+
+    try
+    {
+        PolynomialArray *array = new PolynomialArray(*ctx, *sk, *handle);
+        *poly_array = array;
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+}
+
+SEAL_C_FUNC PolynomialArray_Copy(void *copy, void **poly_array)
+{
     PolynomialArray *copyptr = FromVoid<PolynomialArray>(copy);
     IfNullRet(copyptr, E_POINTER);
     IfNullRet(poly_array, E_POINTER);

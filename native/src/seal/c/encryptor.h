@@ -34,6 +34,12 @@ SEAL_C_FUNC Encryptor_EncryptZero2(void *thisptr, void *destination, void *pool_
 SEAL_C_FUNC Encryptor_EncryptSymmetric(
     void *thisptr, void *plaintext, bool save_seed, void *destination, void *pool_handle);
 
+SEAL_C_FUNC Encryptor_EncryptSymmetricReturnComponents(
+    void *thisptr, void *plaintext, void *destination, void *e_destination, void *remainder_destination, void *pool_handle);
+
+SEAL_C_FUNC Encryptor_EncryptSymmetricReturnComponentsSetSeed(
+    void *thisptr, void *plaintext, void *destination, void *e_destination, void *remainder_destination, void *seed, void *pool_handle);
+
 SEAL_C_FUNC Encryptor_EncryptZeroSymmetric1(
     void *thisptr, uint64_t *parms_id, bool save_seed, void *destination, void *pool_handle);
 

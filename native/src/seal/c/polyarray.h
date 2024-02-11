@@ -9,6 +9,8 @@ SEAL_C_FUNC PolynomialArray_CreateFromCiphertext(void *memoryPoolHandle, void *c
 
 SEAL_C_FUNC PolynomialArray_CreateFromPublicKey(void *memoryPoolHandle, void *context, void *public_key, void **poly_array);
 
+SEAL_C_FUNC PolynomialArray_CreateFromSecretKey(void *memoryPoolHandle, void *context, void *secret_key, void **poly_array);
+
 SEAL_C_FUNC PolynomialArray_Copy(void *copy, void **poly_array);
 
 SEAL_C_FUNC PolynomialArray_Destroy(void *thisptr);

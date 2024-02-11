@@ -310,6 +310,73 @@ SEAL_C_FUNC Encryptor_EncryptSymmetric(
     }
 }
 
+SEAL_C_FUNC Encryptor_EncryptSymmetricReturnComponents(
+    void *thisptr, void *plaintext, void *destination, void *e_destination,
+    void *remainder_destination, void *pool_handle)
+{
+    Encryptor *encryptor = FromVoid<Encryptor>(thisptr);
+    IfNullRet(encryptor, E_POINTER);
+    Plaintext *plain = FromVoid<Plaintext>(plaintext);
+    IfNullRet(plain, E_POINTER);
+    Ciphertext *cipher = FromVoid<Ciphertext>(destination);
+    IfNullRet(cipher, E_POINTER);
+    PolynomialArray *e_dest = FromVoid<PolynomialArray>(e_destination);
+    IfNullRet(e_dest, E_POINTER);
+    Plaintext *r_dest = FromVoid<Plaintext>(remainder_destination);
+    IfNullRet(r_dest, E_POINTER);
+    unique_ptr<MemoryPoolHandle> pool = MemHandleFromVoid(pool_handle);
+
+    try
+    {
+        encryptor->encrypt_symmetric(*plain, *cipher, *e_dest, *r_dest, {}, *pool);
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+    catch (const logic_error &)
+    {
+        return COR_E_INVALIDOPERATION;
+    }
+}
+
+SEAL_C_FUNC Encryptor_EncryptSymmetricReturnComponentsSetSeed(
+    void *thisptr, void *plaintext, void *destination, void *e_destination, void *remainder_destination, void *seed,
+    void *pool_handle)
+{
+    Encryptor *encryptor = FromVoid<Encryptor>(thisptr);
+    IfNullRet(encryptor, E_POINTER);
+    Plaintext *plain = FromVoid<Plaintext>(plaintext);
+    IfNullRet(plain, E_POINTER);
+    Ciphertext *cipher = FromVoid<Ciphertext>(destination);
+    IfNullRet(cipher, E_POINTER);
+    PolynomialArray *e_dest = FromVoid<PolynomialArray>(e_destination);
+    IfNullRet(e_dest, E_POINTER);
+    Plaintext *r_dest = FromVoid<Plaintext>(remainder_destination);
+    IfNullRet(r_dest, E_POINTER);
+    std::array<std::uint64_t, prng_seed_uint64_count> *seed_array =
+        FromVoid<std::array<std::uint64_t, prng_seed_uint64_count>>(seed);
+    IfNullRet(seed_array, E_POINTER);
+    unique_ptr<MemoryPoolHandle> pool = MemHandleFromVoid(pool_handle);
+
+    auto seed_arr = std::optional<std::array<std::uint64_t, prng_seed_uint64_count>>{ *seed_array };
+
+    try
+    {
+        encryptor->encrypt_symmetric(*plain, *cipher, *e_dest, *r_dest, seed_arr, *pool);
+        return S_OK;
+    }
+    catch (const invalid_argument &)
+    {
+        return E_INVALIDARG;
+    }
+    catch (const logic_error &)
+    {
+        return COR_E_INVALIDOPERATION;
+    }
+}
+
 SEAL_C_FUNC Encryptor_EncryptZeroSymmetric1(
     void *thisptr, uint64_t *parms_id, bool save_seed, void *destination, void *pool_handle)
 {

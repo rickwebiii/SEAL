@@ -231,7 +231,9 @@ namespace seal
                 parms_id,
                 is_ntt_form,
                 save_seed,
-                destination
+                export_components, 
+                destination,
+                e_destination
             );
         }
     }
