@@ -12,6 +12,7 @@
 
 #include "seal/c/defines.h"
 #include <stdint.h>
+#include <cstdint>
 
 SEAL_C_FUNC Plaintext_Create1(void *memoryPoolHandle, void **plaintext);
 
@@ -19,7 +20,7 @@ SEAL_C_FUNC Plaintext_Create2(uint64_t coeffCount, void *memoryPoolHandle, void 
 
 SEAL_C_FUNC Plaintext_Create3(uint64_t capacity, uint64_t coeffCount, void *memoryPoolHandle, void **plaintext);
 
-SEAL_C_FUNC Plaintext_Create4(char *hex_poly, void *memoryPoolHandle, void **plaintext);
+SEAL_C_FUNC Plaintext_Create4(uint8_t *hex_poly, void *memoryPoolHandle, void **plaintext);
 
 SEAL_C_FUNC Plaintext_Create5(void *copy, void **plaintext);
 
