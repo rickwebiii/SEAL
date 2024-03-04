@@ -12,7 +12,6 @@
 
 #include "seal/c/defines.h"
 #include <stdint.h>
-#include <cstdint>
 
 SEAL_C_FUNC Plaintext_Create1(void *memoryPoolHandle, void **plaintext);
 
